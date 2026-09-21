@@ -1,0 +1,1623 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#15123A">
+  <meta name="format-detection" content="telephone=no">
+  <title>A Web for Jea</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Gaegu:wght@400;700&display=swap"
+    rel="stylesheet">
+
+  <style>
+    /* =====================================================================
+   A WEB FOR JEA — satu file (HTML + CSS + JS)
+   Konsep: "story" buat Jea. Tiap halaman = satu frame story.
+   Semua elemen = stiker die-cut (pinggir putih tebal + bayangan lembut).
+   ===================================================================== */
+
+    :root {
+      --ink: #3B1030;
+      /* plum tua, ganti navy */
+      --cobalt: #FF6FA5;
+      /* pink utama */
+      --sun: #FFC95C;
+      /* honey, ganti kuning nyolok */
+      --pink: #FF4F8B;
+      --mint: #FFA68C;
+      /* peach */
+      --night: #2A1040;
+      --sans: 'Bricolage Grotesque', ui-rounded, 'SF Pro Rounded', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      --hand: 'Gaegu', 'Bradley Hand', 'Marker Felt', cursive;
+      --die: 0 8px 18px rgba(59, 16, 48, .26);
+      --vh: 1vh;
+      /* di-update JS = tinggi layar asli Safari */
+      --photo-pos: center 22%;
+      /* geser fokus foto hero: "center 10%" = naik, "center 40%" = turun */
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent
+    }
+
+    html,
+    body {
+      height: 100%;
+      overflow: hidden;
+      overscroll-behavior: none
+    }
+
+    html {
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%
+    }
+
+    body {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      background: #1C0A22;
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.4;
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+      -webkit-user-select: none;
+      user-select: none;
+      touch-action: manipulation;
+    }
+
+    button {
+      font: inherit;
+      color: inherit;
+      background: none;
+      border: 0;
+      cursor: pointer
+    }
+
+    a {
+      color: inherit
+    }
+
+    /* ---------- Panggung ---------- */
+    .app {
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      margin: 0 auto;
+      width: 100%;
+      max-width: 430px;
+      overflow: hidden;
+      background: #2A1040;
+      transition: background .45s ease;
+      --bt: rgba(255, 255, 255, .35);
+      --bf: #fff;
+    }
+
+    .app[data-p="1"] {
+      background: #FF6FA5
+    }
+
+    .app[data-p="2"] {
+      background: #2A1040
+    }
+
+    .app[data-p="3"] {
+      background: #C86BD8
+    }
+
+    .app[data-tone="light"] {
+      --bt: rgba(59, 16, 48, .2);
+      --bf: #3B1030
+    }
+
+    /* progress bar ala story */
+    .bars {
+      position: absolute;
+      z-index: 60;
+      top: calc(env(safe-area-inset-top, 0px) + 8px);
+      left: 14px;
+      right: 14px;
+      display: flex;
+      gap: 5px;
+    }
+
+    .bar {
+      flex: 1;
+      height: 22px;
+      position: relative
+    }
+
+    .bar i {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 9px;
+      height: 4px;
+      border-radius: 4px;
+      background: var(--bt);
+      overflow: hidden
+    }
+
+    .bar i::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border-radius: 4px;
+      background: var(--bf);
+      transform: scaleX(0);
+      transform-origin: left center;
+      transition: transform .5s cubic-bezier(.22, 1, .36, 1);
+    }
+
+    .bar.on i::after {
+      transform: scaleX(1)
+    }
+
+    .bar:disabled {
+      cursor: default
+    }
+
+    /* ---------- Halaman (frame) ---------- */
+    .page {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      display: flex;
+      flex-direction: column;
+      padding: calc(env(safe-area-inset-top, 0px) + 42px) 20px calc(env(safe-area-inset-bottom, 0px) + 18px);
+      background: var(--bg);
+      color: var(--fg);
+      opacity: 0;
+      visibility: hidden;
+      transform: translate3d(7%, 0, 0);
+      transition: opacity .35s ease, transform .5s cubic-bezier(.22, 1, .36, 1), visibility 0s linear .5s;
+    }
+
+    .page.active {
+      opacity: 1;
+      visibility: visible;
+      transform: none;
+      transition-delay: 0s
+    }
+
+    .page.past {
+      transform: translate3d(-7%, 0, 0)
+    }
+
+    .boot .page {
+      transition: none !important
+    }
+
+    h1,
+    h2,
+    h3 {
+      font-weight: 800;
+      letter-spacing: .005em;
+      line-height: 1.06;
+      font-variation-settings: "opsz" 96
+    }
+
+    .hd {
+      flex: none;
+      margin-bottom: 6px
+    }
+
+    .hd h2 {
+      font-size: clamp(27px, 8.4vw, 33px)
+    }
+
+    .hand {
+      font-family: var(--hand);
+      font-weight: 700;
+      font-size: 23px;
+      line-height: 1.12
+    }
+
+    /* tombol utama */
+    .btn {
+      flex: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      height: 54px;
+      border-radius: 999px;
+      background: var(--btn-bg, linear-gradient(135deg, #FF8FB8, #FF4F8B 60%, #FF7A6B));
+      color: var(--btn-fg, #fff);
+      font-weight: 800;
+      font-size: 18px;
+      letter-spacing: -.01em;
+      font-variation-settings: "opsz" 24;
+      border: 3px solid #fff;
+      text-decoration: none;
+      box-shadow: 0 6px 0 rgba(59, 16, 48, .22), 0 12px 22px rgba(255, 79, 139, .34);
+      transition: transform .14s cubic-bezier(.3, 1.5, .6, 1), box-shadow .14s ease;
+    }
+
+    .btn:active {
+      transform: translateY(5px) scale(.985);
+      box-shadow: 0 1px 0 rgba(59, 16, 48, .22), 0 6px 14px rgba(255, 79, 139, .28)
+    }
+
+    /* =====================================================================
+   1 · HERO — foto full-bleed
+   ===================================================================== */
+    .p-hero {
+      --bg: #15123A;
+      --fg: #fff;
+      padding: 0
+    }
+
+    .hero-fallback {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      background: linear-gradient(160deg, #5B2BFF, #FF3D8E 60%, #FF9A3D)
+    }
+
+    .hero-photo {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: var(--photo-pos)
+    }
+
+    .hero-scrim {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      pointer-events: none;
+      background: linear-gradient(to bottom, rgba(21, 18, 58, .55) 0%, rgba(21, 18, 58, 0) 20%, rgba(21, 18, 58, 0) 40%, rgba(21, 18, 58, .7) 72%, rgba(21, 18, 58, .94) 100%);
+    }
+
+    .by {
+      position: absolute;
+      left: 16px;
+      top: calc(env(safe-area-inset-top, 0px) + 38px);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-shadow: 0 1px 6px rgba(0, 0, 0, .35);
+    }
+
+    .ava {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      padding: 2.5px;
+      background: conic-gradient(#FFC95C, #FF4F8B, #C98CFF, #FFC95C)
+    }
+
+    .ava span {
+      display: grid;
+      place-items: center;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: var(--ink);
+      border: 2px solid var(--ink);
+      font-weight: 800;
+      font-size: 15px
+    }
+
+    .by b {
+      font-weight: 700;
+      font-size: 15px
+    }
+
+    .by small {
+      font-size: 14px;
+      opacity: .78;
+      margin-left: 10px
+    }
+
+    .hero-copy {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 0 20px calc(env(safe-area-inset-bottom, 0px) + 18px);
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 11px;
+    }
+
+    .hero-copy h1 {
+      font-size: clamp(46px, 14.6vw, 60px);
+      line-height: .95;
+      letter-spacing: .015em;
+      text-shadow: 3px 3px 0 var(--pink);
+    }
+
+    .mark {
+      font-family: var(--hand);
+      font-weight: 700;
+      font-size: 21px;
+      line-height: 1.5;
+      transform: rotate(-1.5deg);
+      transform-origin: left center
+    }
+
+    .mark span {
+      background: var(--sun);
+      color: var(--ink);
+      padding: 2px 12px 3px;
+      border-radius: 12px;
+      -webkit-box-decoration-break: clone;
+      box-decoration-break: clone;
+    }
+
+    .lead {
+      font-size: 16px;
+      line-height: 1.5;
+      font-weight: 500;
+      max-width: 320px;
+      text-shadow: 0 1px 8px rgba(0, 0, 0, .45)
+    }
+
+    .lead em {
+      font-family: var(--hand);
+      font-style: normal;
+      font-weight: 700;
+      font-size: 1.4em;
+      line-height: 1
+    }
+
+    /* =====================================================================
+   2 · LITTLE THINGS — tumpukan kartu
+   ===================================================================== */
+    .p-cards {
+      --bg: linear-gradient(168deg, #FF9CC4 0%, #FF6FA5 46%, #C98CFF 100%);
+      --fg: #fff
+    }
+
+    .p-cards .hand {
+      color: #FFF0B8
+    }
+
+    .p-cards::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: .5;
+      background:
+        radial-gradient(circle 4px at 12% 22%, rgba(255, 255, 255, .75), transparent 60%),
+        radial-gradient(circle 5px at 86% 30%, rgba(255, 255, 255, .6), transparent 60%),
+        radial-gradient(circle 3px at 22% 72%, rgba(255, 255, 255, .7), transparent 60%),
+        radial-gradient(circle 4px at 78% 80%, rgba(255, 255, 255, .55), transparent 60%);
+    }
+
+    .p-cards>* {
+      position: relative;
+      z-index: 1
+    }
+
+    .stage {
+      position: relative;
+      flex: 0 1 470px;
+      min-height: 0;
+      margin: auto 0;
+      width: 100%
+    }
+
+    .card {
+      position: absolute;
+      top: 0;
+      bottom: 28px;
+      left: 0;
+      right: 0;
+      margin: 0 auto;
+      width: min(80vw, 300px);
+      perspective: 1100px;
+      touch-action: none;
+      cursor: grab;
+      transition: transform .5s cubic-bezier(.22, 1, .36, 1), opacity .3s ease;
+    }
+
+    .card.dragging {
+      transition: none;
+      cursor: grabbing
+    }
+
+    .card:not([data-rel="0"]) {
+      pointer-events: none
+    }
+
+    .card[data-rel="0"] {
+      z-index: 5
+    }
+
+    .card[data-rel="1"] {
+      z-index: 4;
+      transform: translateY(12px) scale(.95) rotate(2.5deg)
+    }
+
+    .card[data-rel="2"] {
+      z-index: 3;
+      transform: translateY(24px) scale(.9) rotate(-2.5deg)
+    }
+
+    .card[data-rel="3"] {
+      z-index: 2;
+      transform: translateY(24px) scale(.9);
+      opacity: 0
+    }
+
+    .card[data-rel="-1"] {
+      z-index: 1;
+      opacity: 0
+    }
+
+    .card[data-rel="-1"][data-dir="l"] {
+      transform: translateX(-135%) rotate(-16deg)
+    }
+
+    .card[data-rel="-1"][data-dir="r"] {
+      transform: translateX(135%) rotate(16deg)
+    }
+
+    .flip {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      transform-style: preserve-3d;
+      -webkit-transform-style: preserve-3d;
+      transition: transform .7s cubic-bezier(.34, 1.3, .64, 1);
+    }
+
+    .card.flipped .flip {
+      transform: rotateY(180deg)
+    }
+
+    .face {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      border: 4px solid #fff;
+      border-radius: 26px;
+      box-shadow: var(--die);
+      overflow: hidden;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+
+    /* depan = amplop */
+    .front {
+      color: var(--ink);
+      text-align: center;
+      background:
+        linear-gradient(to bottom left, rgba(255, 255, 255, .34) 50%, transparent 50%) top left/50% 44% no-repeat,
+        linear-gradient(to bottom right, rgba(255, 255, 255, .34) 50%, transparent 50%) top right/50% 44% no-repeat,
+        var(--c);
+    }
+
+    .seal {
+      position: absolute;
+      left: 50%;
+      top: 44%;
+      width: 76px;
+      height: 76px;
+      margin: -38px 0 0 -38px;
+      border-radius: 50%;
+      background: #fff;
+      display: grid;
+      place-items: center;
+      font-size: 40px;
+      box-shadow: 0 5px 12px rgba(21, 18, 58, .25);
+    }
+
+    .front .tap {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: calc(44% + 52px);
+      font-family: var(--hand);
+      font-weight: 700;
+      font-size: 34px;
+      line-height: 1
+    }
+
+    .front .sub {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: calc(44% + 92px);
+      font-size: 14px;
+      font-weight: 600;
+      opacity: .7
+    }
+
+    /* belakang = isi pesan */
+    .back {
+      background: #fff;
+      transform: rotateY(180deg);
+      display: flex;
+      flex-direction: column;
+      color: var(--ink)
+    }
+
+    .back .top {
+      flex: 0 0 36%;
+      min-height: 0;
+      background: var(--c);
+      display: grid;
+      place-items: center;
+      font-size: clamp(44px, 8.5vh, 60px)
+    }
+
+    .back .txt {
+      flex: 1;
+      min-height: 0;
+      padding: 14px 20px 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 7px;
+      text-align: left
+    }
+
+    .back h3 {
+      font-size: 24px
+    }
+
+    .back p {
+      font-size: 15.5px;
+      line-height: 1.45;
+      font-weight: 500
+    }
+
+    .pt-burst {
+      position: absolute;
+      z-index: 20;
+      border-radius: 50%;
+      border: 2px solid #fff;
+      pointer-events: none
+    }
+
+    .ctrl {
+      flex: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      width: 100%;
+      max-width: 330px;
+      margin: 0 auto 12px
+    }
+
+    .rb {
+      flex: none;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #fff;
+      color: var(--ink);
+      display: grid;
+      place-items: center;
+      box-shadow: var(--die);
+      transition: transform .15s, opacity .2s;
+    }
+
+    .rb:active {
+      transform: scale(.9)
+    }
+
+    .rb:disabled {
+      opacity: .35;
+      box-shadow: none
+    }
+
+    .mid {
+      flex: 1;
+      min-width: 0;
+      text-align: center
+    }
+
+    .mid b {
+      display: block;
+      font-size: 20px;
+      font-weight: 800;
+      line-height: 1.1;
+      font-variation-settings: "opsz" 48
+    }
+
+    .mid span {
+      display: block;
+      font-family: var(--hand);
+      font-weight: 700;
+      font-size: 19px;
+      line-height: 1.08;
+      color: #FFF0B8
+    }
+
+    /* =====================================================================
+   3 · BUNGA — satu momen animasi utama
+   ===================================================================== */
+    .p-flower {
+      --bg: radial-gradient(120% 85% at 50% 12%, #5A2160 0%, #35134A 45%, #240D33 100%);
+      --fg: #fff;
+      position: absolute
+    }
+
+    .sky {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      pointer-events: none
+    }
+
+    .star {
+      position: absolute;
+      width: var(--sz);
+      height: var(--sz);
+      border-radius: 50%;
+      background: #fff;
+      opacity: .3
+    }
+
+    .p-flower.active .star {
+      animation: tw 3.2s ease-in-out var(--dl) infinite
+    }
+
+    @keyframes tw {
+
+      0%,
+      100% {
+        opacity: .18
+      }
+
+      50% {
+        opacity: .95
+      }
+    }
+
+    .p-flower .hd,
+    .p-flower .cap,
+    .p-flower .btn,
+    .garden {
+      position: relative
+    }
+
+    .p-flower .hd h2 {
+      color: #fff
+    }
+
+    .garden {
+      flex: none;
+      height: var(--gh, 330px);
+      margin: auto 0;
+      --gs: 1
+    }
+
+    .garden::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -10px;
+      width: 360px;
+      height: 360px;
+      margin-left: -180px;
+      background: radial-gradient(closest-side, rgba(255, 79, 163, .3), rgba(255, 79, 163, 0));
+    }
+
+    .bouquet {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      width: 300px;
+      height: 330px;
+      margin-left: -150px;
+      transform: scale(var(--gs));
+      transform-origin: 50% 100%
+    }
+
+    .fl {
+      position: absolute;
+      left: 150px;
+      bottom: 58px;
+      width: 0;
+      height: var(--h);
+      transform: rotate(var(--r));
+      transform-origin: 0 100%
+    }
+
+    .sway {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 0;
+      height: 100%;
+      transform-origin: 0 100%
+    }
+
+    .stem {
+      position: absolute;
+      left: -3px;
+      bottom: 0;
+      width: 6px;
+      height: 100%;
+      border-radius: 3px;
+      background: linear-gradient(#5BE3A0, #2FB47A);
+      transform: scaleY(0);
+      transform-origin: 50% 100%
+    }
+
+    .leaf {
+      position: absolute;
+      bottom: 50%;
+      width: 30px;
+      height: 15px;
+      opacity: 0;
+      background: #3FD58B;
+      border: 2px solid rgba(14, 18, 69, .35);
+    }
+
+    .leaf.l {
+      left: -31px;
+      border-radius: 100% 0 100% 0;
+      transform: rotate(-14deg)
+    }
+
+    .leaf.r {
+      left: 1px;
+      border-radius: 0 100% 0 100%;
+      transform: rotate(14deg)
+    }
+
+    .head {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 0;
+      height: 0;
+      transform: scale(0)
+    }
+
+    .pt {
+      position: absolute;
+      left: -10px;
+      top: -40px;
+      width: 20px;
+      height: 40px;
+      border-radius: 50% 50% 46% 46%/62% 62% 38% 38%;
+      background: linear-gradient(to top, var(--c2), var(--c));
+      border: 2px solid rgba(14, 18, 69, .4);
+      transform-origin: 50% 100%;
+      transform: rotate(calc(var(--i) * 360deg / var(--n)));
+    }
+
+    .ctr {
+      position: absolute;
+      left: -12px;
+      top: -12px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--ctr);
+      border: 2px solid rgba(14, 18, 69, .45)
+    }
+
+    .p-flower.active .stem {
+      animation: grow 1s cubic-bezier(.3, .9, .3, 1) var(--d) both
+    }
+
+    .p-flower.active .leaf {
+      animation: leafIn .5s ease-out calc(var(--d) + .6s) both
+    }
+
+    .p-flower.active .head {
+      animation: pop .9s cubic-bezier(.34, 1.56, .64, 1) calc(var(--d) + .8s) both
+    }
+
+    .p-flower.active .sway {
+      animation: sway 5s ease-in-out calc(var(--d) + 1.9s) infinite alternate
+    }
+
+    @keyframes grow {
+      to {
+        transform: scaleY(1)
+      }
+    }
+
+    @keyframes leafIn {
+      from {
+        opacity: 0
+      }
+
+      to {
+        opacity: 1
+      }
+    }
+
+    @keyframes pop {
+      from {
+        transform: scale(0) rotate(-70deg)
+      }
+
+      to {
+        transform: scale(var(--s)) rotate(0)
+      }
+    }
+
+    @keyframes sway {
+      from {
+        transform: rotate(-1.6deg)
+      }
+
+      to {
+        transform: rotate(1.6deg)
+      }
+    }
+
+    .wrapper {
+      position: absolute;
+      left: 50%;
+      bottom: 0;
+      width: 170px;
+      height: 128px;
+      margin-left: -85px;
+      z-index: 10;
+      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, .3))
+    }
+
+    .cap {
+      flex: none;
+      text-align: center;
+      margin-bottom: 14px
+    }
+
+    .cap .hand {
+      font-size: 27px;
+      color: #fff
+    }
+
+    .cap small {
+      display: block;
+      font-family: var(--hand);
+      font-weight: 700;
+      font-size: 21px;
+      color: #FFB3D1;
+      margin-top: 2px
+    }
+
+    /* =====================================================================
+   4 · PENUTUP — DM
+   ===================================================================== */
+    .p-final {
+      --bg: linear-gradient(165deg, #FFA9C6 0%, #FF5E93 42%, #C98CFF 74%, #FFC28E 100%);
+      --fg: #fff
+    }
+
+    .thread {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      gap: 8px;
+      padding: 8px 0 16px
+    }
+
+    .love {
+      margin: auto;
+      font-size: clamp(72px, 13vh, 112px);
+      line-height: 1;
+      transform: rotate(-8deg);
+      text-shadow: 3px 0 #fff, -3px 0 #fff, 0 3px #fff, 0 -3px #fff, 2px 2px #fff, -2px -2px #fff, 2px -2px #fff, -2px 2px #fff, 0 10px 18px rgba(21, 18, 58, .3);
+    }
+
+    .msg {
+      max-width: 84%;
+      padding: 11px 16px;
+      border-radius: 22px;
+      font-size: 16px;
+      line-height: 1.42;
+      font-weight: 500;
+    }
+
+    .msg.me {
+      align-self: flex-end;
+      background: #fff;
+      color: var(--ink);
+      border-bottom-right-radius: 7px;
+      box-shadow: 0 4px 12px rgba(21, 18, 58, .22)
+    }
+
+    .msg.you {
+      align-self: flex-start;
+      background: var(--ink);
+      color: #fff;
+      border-bottom-left-radius: 7px
+    }
+
+    .msg.new {
+      animation: msgIn .35s cubic-bezier(.3, 1.4, .6, 1) both
+    }
+
+    @keyframes msgIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px) scale(.85)
+      }
+
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    .dots {
+      display: inline-flex;
+      gap: 5px;
+      align-items: center;
+      height: 22px
+    }
+
+    .dots i {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--ink);
+      opacity: .35;
+      animation: dot 1s ease-in-out infinite
+    }
+
+    .dots i:nth-child(2) {
+      animation-delay: .15s
+    }
+
+    .dots i:nth-child(3) {
+      animation-delay: .3s
+    }
+
+    @keyframes dot {
+
+      0%,
+      100% {
+        opacity: .25;
+        transform: translateY(0)
+      }
+
+      50% {
+        opacity: .9;
+        transform: translateY(-3px)
+      }
+    }
+
+    .chips {
+      flex: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px
+    }
+
+    .chip {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 54px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 17px;
+      letter-spacing: -.01em;
+      text-decoration: none;
+      border: 3px solid #fff;
+      transition: transform .15s cubic-bezier(.3, 1.5, .6, 1), opacity .2s;
+    }
+
+    .chip:active {
+      transform: scale(.96)
+    }
+
+    .chip.pri {
+      background: #fff;
+      color: var(--pink);
+      box-shadow: 0 6px 0 rgba(59, 16, 48, .18), 0 12px 20px rgba(59, 16, 48, .22)
+    }
+
+    .chip.pri:active {
+      transform: translateY(5px) scale(.985);
+      box-shadow: 0 1px 0 rgba(59, 16, 48, .18)
+    }
+
+    .chip.sec {
+      background: rgba(255, 255, 255, .2);
+      color: #fff
+    }
+
+    .chip.sec:disabled {
+      opacity: .5
+    }
+
+    .foot {
+      flex: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      margin-top: 12px
+    }
+
+    .link {
+      font-weight: 700;
+      font-size: 15px;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      padding: 6px 10px
+    }
+
+    .foot .hand {
+      font-size: 25px
+    }
+
+    /* penanda versi (hanya muncul kalau URL ditambah ?debug) */
+    .dbg {
+      position: absolute;
+      z-index: 99;
+      left: 8px;
+      bottom: calc(env(safe-area-inset-bottom, 0px) + 2px);
+      font: 600 10px/1 monospace;
+      color: #fff;
+      background: rgba(0, 0, 0, .55);
+      padding: 3px 6px;
+      border-radius: 6px
+    }
+
+    /* layar pendek (Safari iPhone X saat toolbar muncul ± 560–640px) */
+    @media (max-height:640px) {
+      .page {
+        padding-top: calc(env(safe-area-inset-top, 0px) + 38px)
+      }
+
+      .hero-copy {
+        gap: 9px
+      }
+
+      .hero-copy h1 {
+        font-size: 48px
+      }
+
+      .lead {
+        font-size: 15px;
+        line-height: 1.45
+      }
+
+      .ctrl {
+        margin-bottom: 8px
+      }
+
+      .back h3 {
+        font-size: 22px
+      }
+
+      .back p {
+        font-size: 15px;
+        line-height: 1.42
+      }
+
+      .garden {
+        --gh: 300px;
+        --gs: .92
+      }
+    }
+
+    @media (max-height:600px) {
+      .love {
+        display: none
+      }
+    }
+
+    @media (max-height:560px) {
+      .garden {
+        --gh: 250px;
+        --gs: .76
+      }
+
+      .info b {
+        font-size: 18px
+      }
+    }
+
+    @media (min-height:760px) {
+      .garden {
+        --gh: 420px;
+        --gs: 1.28
+      }
+    }
+
+    /* HP posisi tidur */
+    .rot {
+      display: none;
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 200;
+      background: var(--ink);
+      color: #fff;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+      font-weight: 800;
+      font-size: 22px;
+      line-height: 1.3
+    }
+
+    @media (orientation:landscape) and (max-height:520px) {
+      .rot {
+        display: flex
+      }
+    }
+
+    @media (prefers-reduced-motion:reduce) {
+
+      *,
+      *::before,
+      *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app boot" id="app" data-p="0" data-tone="dark">
+    <nav class="bars" id="bars" aria-label="Halaman"></nav>
+
+    <!-- ============ 1 · HERO ============ -->
+    <section class="page p-hero active" data-tone="dark" aria-label="Pembuka">
+      <div class="hero-fallback"></div>
+      <img class="hero-photo" src="assets/her.PNG" alt="Foto Jea" onerror="this.remove()">
+      <div class="hero-scrim"></div>
+
+      <div class="by">
+        <div class="ava"><span>R</span></div>
+        <div><b id="handle">revandiwangkara</b><small>baru saja</small></div>
+      </div>
+
+      <div class="hero-copy">
+        <h1>For Jea ✨</h1>
+        <p class="mark"><span>Dari yang katanya<br>cowok informatika.</span></p>
+        <p class="lead">Kamu bilang <em>e</em> bebas mau dibikinin apa aja, aku bikin ini. Iki apa aku jugaa gatauu.</p>
+        <button class="btn" type="button" data-next>Buukaa</button>
+      </div>
+    </section>
+
+    <!-- ============ 2 · LITTLE THINGS ============ -->
+    <section class="page p-cards" data-tone="dark" aria-label="Little things I know">
+      <header class="hd">
+        <h2>Little things I know</h2>
+        <p class="hand" id="cardsSub">i dont even know abt uu, jadi isine dikitt.</p>
+      </header>
+
+      <div class="stage" id="stack"></div>
+
+      <div class="ctrl">
+        <button class="rb" id="prev" type="button" aria-label="Kartu sebelumnya">
+          <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"
+              stroke-linejoin="round" />
+          </svg>
+        </button>
+        <div class="mid"><b id="count">1 / 7</b><span id="hint">tap kartunya 💌</span></div>
+        <button class="rb" id="next" type="button" aria-label="Kartu berikutnya">
+          <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"
+              stroke-linejoin="round" />
+          </svg>
+        </button>
+      </div>
+      <button class="btn" type="button" data-next>Lanjut 🌷</button>
+    </section>
+
+    <!-- ============ 3 · BUNGA ============ -->
+    <section class="page p-flower" data-tone="dark" aria-label="Bunga untuk Jea">
+      <div class="sky" id="sky" aria-hidden="true"></div>
+      <header class="hd">
+        <h2>A flower for you 🌷</h2>
+      </header>
+
+      <div class="garden" aria-hidden="true">
+        <div class="bouquet" id="bouquet">
+          <svg class="wrapper" viewBox="0 0 170 128">
+            <path d="M8 6 Q85 -6 162 6 L96 121 Q85 128 74 121 Z" fill="#FF4F8B" stroke="#fff" stroke-width="4"
+              stroke-linejoin="round" />
+            <path d="M14 10 Q85 0 156 10 L128 58 Q85 40 42 58 Z" fill="#FF8CC6" />
+            <path d="M85 46 L85 118" stroke="#fff" stroke-opacity=".28" stroke-width="2.5" stroke-linecap="round" />
+            <g transform="translate(85 50)">
+              <path d="M0 0 C-20 -18 -34 -6 -30 8 C-26 18 -10 12 0 0Z" fill="#FFC95C" stroke="#fff" stroke-width="3"
+                stroke-linejoin="round" />
+              <path d="M0 0 C20 -18 34 -6 30 8 C26 18 10 12 0 0Z" fill="#FFC95C" stroke="#fff" stroke-width="3"
+                stroke-linejoin="round" />
+              <circle r="7" fill="#FFA68C" stroke="#fff" stroke-width="3" />
+            </g>
+          </svg>
+        </div>
+      </div>
+
+      <div class="cap">
+        <p class="hand">Digital flower for uuuu.</p>
+        <small>gak bakal layu, gak perlu disiram 🌱</small>
+      </div>
+      <button class="btn" type="button" data-next>Lanjut 💌</button>
+    </section>
+
+    <!-- ============ 4 · PENUTUP ============ -->
+    <section class="page p-final" data-tone="dark" aria-label="Balas DM">
+      <header class="hd">
+        <h2>Jadi gimana, Jeeee?</h2>
+      </header>
+
+      <div class="thread" id="thread" aria-live="polite">
+        <div class="love" aria-hidden="true">💌</div>
+        <div class="msg me">Kalau kamu mau balas, atau sekadar bilang “gombal banget sih” aku tunggu ya, sengg.</div>
+      </div>
+
+      <div class="chips">
+        <a class="chip pri" id="dm" href="https://ig.me/m/revandiwangkara" target="_blank" rel="noopener">Balas DM aku
+          💌</a>
+        <button class="chip sec" id="gombal" type="button">Gombal banget sih 🙄</button>
+      </div>
+
+      <div class="foot">
+        <button class="link" type="button" data-home>Kembali ke awal</button>
+        <p class="hand">tencuu</p>
+      </div>
+    </section>
+  </div>
+
+  <div class="rot">Putar HP-mu ke posisi berdiri ya 📱</div>
+  <div class="dbg" id="dbg" hidden></div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      /* =====================================================================
+         ✏️  EDIT DI SINI  — teks & pengaturan yang paling sering diganti
+         ===================================================================== */
+      var HANDLE = 'revandiwangkara';                       // username IG (dipakai di header & link DM)
+      var DM_LINK = 'https://ig.me/m/' + HANDLE;
+
+      var FACTS = [   // seal/sub = tampilan amplop, emoji/title/text = isi pesan, c = warna kartu
+        { seal: '💌', sub: 'bukaaa~', emoji: '👶', title: 'Haiii Ontyy', c: '#FF8FB8', text: 'Katane sih gara-gara kakak ipar abis lahiran, adeknya jangan diajarin aneh aneh yaa. 👶' },
+        { seal: '✉️', sub: 'ada sesuatu nih~', emoji: '👱‍♀️', title: 'Blooooonde', c: '#FFC95C', text: 'Rambut blonde kamu literally jadi highlight setiap kali muncul di story, next balik merah yya ben kek jean grey akwakwak 👱‍♀️' },
+        { seal: '🎀', sub: 'buka yaaa~', emoji: '🧐', title: 'Mbuontoot', c: '#C9A7FF', text: 'Katanya anak bontot paling dimanja, tapi kok kamu malah paling perhatian ke orang lain. Kind of suspicious, sih, cinta. 🧐' },
+        { seal: '🌸', sub: 'jan skip yaa~', emoji: '🎓', title: 'Maba garuh gedung', c: '#FFB3D1', text: 'Haii adik tingkattt, nikmatin isek semester 3 masih bisa ketawa ahaha, lucunya sih bisa bisane gahafal gedung i. 🎓' },
+        { seal: '⭐', sub: 'ini spesial~', emoji: '🤞', title: 'Gojo lagi gojo lagi', c: '#FFA68C', text: 'Kenapaa mesti cewek senengee gojooo, padal secara fisik toji lebih sangarr. 🤞' },
+        { seal: '🎁', sub: 'satu lagi nih~', emoji: '💃', title: 'Dancer Favoritmu', c: '#F3A8FF', text: 'Jangan lupa makan, sayang. Kalau enggak, nanti dikejar Seto.' },
+        { seal: '💝', sub: 'lasttt~', emoji: '🤗', title: 'Physical touch', c: '#FF6F91', text: 'love language kamu udah ke-notice sama aku: physical touch. So... bersiap aja ya, cinta. 🤗' }
+      ];
+
+      var BLOOMS = [  // r = sudut, h = tinggi tangkai, s = ukuran, c/c2 = warna kelopak, ctr = warna tengah, n = jumlah kelopak
+        { r: -33, h: 150, s: .86, c: '#FFC95C', c2: '#FFF0C9', ctr: '#FF4F8B', n: 8 },
+        { r: -16, h: 200, s: 1.0, c: '#FF4F8B', c2: '#FFA8CB', ctr: '#FFC95C', n: 9 },
+        { r: 2, h: 222, s: 1.06, c: '#FFFFFF', c2: '#FFE2F0', ctr: '#FF8FB8', n: 10 },
+        { r: 19, h: 190, s: .96, c: '#C9A7FF', c2: '#EADCFF', ctr: '#FFC95C', n: 8 },
+        { r: 35, h: 146, s: .84, c: '#FFA68C', c2: '#FFD8C8', ctr: '#FFFFFF', n: 8 }
+      ];
+      /* ===================================================================== */
+
+      var $ = function (s, el) { return (el || document).querySelector(s); };
+      var $$ = function (s, el) { return Array.prototype.slice.call((el || document).querySelectorAll(s)); };
+
+      /* tinggi layar asli (Safari iPhone: toolbar naik-turun) */
+      function setVH() { document.documentElement.style.setProperty('--vh', (window.innerHeight * 0.01) + 'px'); }
+      setVH();
+      window.addEventListener('resize', setVH);
+      window.addEventListener('orientationchange', function () { setTimeout(setVH, 250); });
+
+      /* cegah scroll / pinch-zoom bawaan iOS */
+      document.addEventListener('gesturestart', function (e) { e.preventDefault(); });
+      document.addEventListener('touchmove', function (e) {
+        if (!e.target.closest || !e.target.closest('.card')) e.preventDefault();
+      }, { passive: false });
+
+      $('#handle').textContent = HANDLE;
+      $('#dm').href = DM_LINK;
+
+      /* ---------------------------------------------------------------------
+         Navigasi halaman
+         --------------------------------------------------------------------- */
+      var app = $('#app'), pages = $$('.page'), barsEl = $('#bars');
+      var themeMeta = $('meta[name="theme-color"]');
+      var THEME = ['#15123A', '#FF6FA5', '#2A1040', '#C86BD8'];
+      var cur = 0, max = 0;
+
+      var bars = pages.map(function (_, i) {
+        var b = document.createElement('button');
+        b.type = 'button'; b.className = 'bar'; b.innerHTML = '<i></i>';
+        b.setAttribute('aria-label', 'Halaman ' + (i + 1));
+        b.addEventListener('click', function () { if (i <= max) go(i); });
+        barsEl.appendChild(b);
+        return b;
+      });
+
+      function go(n) {
+        n = Math.max(0, Math.min(pages.length - 1, n));
+        cur = n; max = Math.max(max, n);
+        pages.forEach(function (p, i) {
+          p.classList.toggle('active', i === n);
+          p.classList.toggle('past', i < n);
+          p.setAttribute('aria-hidden', String(i !== n));
+        });
+        bars.forEach(function (b, i) { b.classList.toggle('on', i <= n); b.disabled = i > max; });
+        app.setAttribute('data-p', n);
+        app.setAttribute('data-tone', pages[n].getAttribute('data-tone'));
+        if (themeMeta) themeMeta.setAttribute('content', THEME[n] || THEME[0]);
+        if (n === 0) resetChat();
+      }
+
+      document.addEventListener('click', function (e) {
+        var t = e.target.closest ? e.target.closest('[data-next],[data-home]') : null;
+        if (!t) return;
+        if (t.hasAttribute('data-home')) go(0); else go(cur + 1);
+      });
+
+      document.addEventListener('keydown', function (e) {
+        if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+        var d = e.key === 'ArrowRight' ? 1 : -1;
+        if (cur === 1) moveCard(d); else go(cur + d);
+      });
+
+      /* ---------------------------------------------------------------------
+         Halaman 2 — tumpukan kartu (tap = buka, geser = ganti kartu)
+         --------------------------------------------------------------------- */
+      var stack = $('#stack'), countEl = $('#count'), hintEl = $('#hint'), subEl = $('#cardsSub');
+      var prevBtn = $('#prev'), nextBtn = $('#next');
+      var index = 0, opened = {}, openedN = 0;
+
+      var cards = FACTS.map(function (f, i) {
+        var c = document.createElement('div');
+        c.className = 'card'; c.setAttribute('data-i', i); c.setAttribute('role', 'group');
+        c.style.setProperty('--c', f.c);
+        c.innerHTML =
+          '<div class="flip">' +
+          '<div class="face front">' +
+          '<div class="seal">' + f.seal + '</div>' +
+          '<div class="tap">Tap to open</div>' +
+          '<div class="sub">' + f.sub + '</div>' +
+          '</div>' +
+          '<div class="face back">' +
+          '<div class="top">' + f.emoji + '</div>' +
+          '<div class="txt"><h3>' + f.title + '</h3><p>' + f.text + '</p></div>' +
+          '</div>' +
+          '</div>';
+        stack.appendChild(c);
+        return c;
+      });
+
+      function renderCards() {
+        cards.forEach(function (c, i) {
+          var rel = i - index;
+          c.setAttribute('data-rel', Math.max(-1, Math.min(3, rel)));
+          if (rel < 0 && !c.getAttribute('data-dir')) c.setAttribute('data-dir', 'l');
+          c.setAttribute('aria-hidden', rel !== 0);
+        });
+        countEl.textContent = (index + 1) + ' / ' + FACTS.length;
+        prevBtn.disabled = index === 0;
+        nextBtn.disabled = index === FACTS.length - 1;
+        hintEl.textContent =
+          openedN === FACTS.length ? 'udah semua! 🌸' :
+            openedN === 0 ? 'tap kartunya 💌' : 'geser buat lanjut';
+        subEl.textContent = openedN === FACTS.length
+          ? 'masih dikit yang aku tau, tapi seneng nyari tau lebih banyak'
+          : 'i dont even know abt uu (yet), jadi isine dikitt.';
+      }
+
+      function moveCard(d, dir) {
+        var n = index + d;
+        if (n < 0 || n >= FACTS.length) return;
+        if (d > 0) cards[index].setAttribute('data-dir', dir || 'l');
+        index = n;
+        renderCards();
+      }
+
+      function burst(card, color) {
+        if (!card.animate) return;
+        var w = card.offsetWidth, h = card.offsetHeight;
+        var cols = [color, '#fff', '#FFC95C', '#FF4F8B'];
+        for (var i = 0; i < 16; i++) {
+          var p = document.createElement('i');
+          var a = (i / 16) * Math.PI * 2 + Math.random() * 0.4;
+          var dist = 70 + Math.random() * 90, s = 7 + Math.random() * 7;
+          p.className = 'pt-burst';
+          p.style.cssText = 'left:' + w / 2 + 'px;top:' + h / 2 + 'px;width:' + s + 'px;height:' + s + 'px;background:' + cols[i % 4];
+          card.appendChild(p);
+          (function (el) {
+            var anim = el.animate([
+              { transform: 'translate(-50%,-50%) scale(1)', opacity: 1 },
+              { transform: 'translate(' + (Math.cos(a) * dist - s / 2) + 'px,' + (Math.sin(a) * dist - s / 2) + 'px) scale(.2)', opacity: 0 }
+            ], { duration: 550 + Math.random() * 350, easing: 'cubic-bezier(.2,.8,.3,1)' });
+            anim.onfinish = function () { el.remove(); };
+          })(p);
+        }
+      }
+
+      function flip(card) {
+        var i = +card.getAttribute('data-i');
+        if (card.classList.contains('flipped')) return;
+        card.classList.add('flipped');
+        if (!opened[i]) { opened[i] = 1; openedN++; }
+        burst(card, FACTS[i].c);
+        renderCards();
+      }
+
+      var drag = null;
+      stack.addEventListener('pointerdown', function (e) {
+        var card = e.target.closest('.card');
+        if (!card || +card.getAttribute('data-i') !== index) return;
+        drag = { card: card, id: e.pointerId, x0: e.clientX, y0: e.clientY, dx: 0, moved: false };
+        card.classList.add('dragging');
+        try { card.setPointerCapture(e.pointerId); } catch (_) { }
+      });
+      stack.addEventListener('pointermove', function (e) {
+        if (!drag || e.pointerId !== drag.id) return;
+        drag.dx = e.clientX - drag.x0;
+        var dy = e.clientY - drag.y0;
+        if (Math.abs(drag.dx) > 6 || Math.abs(dy) > 6) drag.moved = true;
+        if (drag.moved) drag.card.style.transform = 'translate3d(' + drag.dx + 'px,' + dy * 0.25 + 'px,0) rotate(' + drag.dx * 0.06 + 'deg)';
+      });
+      function endDrag(e) {
+        if (!drag || (e && e.pointerId !== drag.id)) return;
+        var d = drag; drag = null;
+        d.card.classList.remove('dragging');
+        d.card.style.transform = '';
+        if (!d.moved) { if (e && e.type === 'pointerup') flip(d.card); }
+        else if (Math.abs(d.dx) > 60) moveCard(1, d.dx < 0 ? 'l' : 'r');
+      }
+      stack.addEventListener('pointerup', endDrag);
+      stack.addEventListener('pointercancel', endDrag);
+      prevBtn.addEventListener('click', function () { moveCard(-1); });
+      nextBtn.addEventListener('click', function () { moveCard(1); });
+      renderCards();
+
+      /* ---------------------------------------------------------------------
+         Halaman 3 — bunga + bintang
+         --------------------------------------------------------------------- */
+      var bq = $('#bouquet'), wrapperSvg = $('.wrapper', bq);
+      BLOOMS.forEach(function (b, k) {
+        var fl = document.createElement('div');
+        fl.className = 'fl';
+        fl.style.cssText = '--r:' + b.r + 'deg;--h:' + b.h + 'px;--s:' + b.s + ';--d:' + (0.25 + k * 0.22).toFixed(2) + 's;' +
+          '--c:' + b.c + ';--c2:' + b.c2 + ';--ctr:' + b.ctr + ';--n:' + b.n;
+        var petals = '';
+        for (var i = 0; i < b.n; i++) petals += '<span class="pt" style="--i:' + i + '"></span>';
+        fl.innerHTML = '<div class="sway"><i class="stem"></i><i class="leaf l"></i><i class="leaf r"></i>' +
+          '<div class="head">' + petals + '<span class="ctr"></span></div></div>';
+        bq.insertBefore(fl, wrapperSvg);
+      });
+
+      (function stars() {
+        var sky = $('#sky'), seed = 7;
+        function rnd() { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
+        for (var i = 0; i < 26; i++) {
+          var s = document.createElement('i');
+          s.className = 'star';
+          s.style.cssText = 'left:' + (rnd() * 100).toFixed(1) + '%;top:' + (rnd() * 100).toFixed(1) + '%;--sz:' + (1.5 + rnd() * 2.5).toFixed(1) + 'px;--dl:' + (rnd() * 3).toFixed(1) + 's';
+          sky.appendChild(s);
+        }
+      })();
+
+      /* ---------------------------------------------------------------------
+         Halaman 4 — chat DM
+         --------------------------------------------------------------------- */
+      var thread = $('#thread'), gombal = $('#gombal'), chatStep = 0, chatTimers = [];
+      function bubble(kind, html) {
+        var d = document.createElement('div');
+        d.className = 'msg ' + kind + ' new';
+        d.innerHTML = html;
+        thread.appendChild(d);
+        return d;
+      }
+      gombal.addEventListener('click', function () {
+        if (chatStep) return;
+        chatStep = 1; gombal.disabled = true;
+        bubble('you', 'gombal banget sih 🙄');
+        chatTimers.push(setTimeout(function () {
+          var t = bubble('me', '<span class="dots"><i></i><i></i><i></i></span>');
+          chatTimers.push(setTimeout(function () { t.textContent = 'hehe. bilang langsung nde DM juga boleee 😌'; }, 900));
+        }, 600));
+      });
+      function resetChat() {
+        chatTimers.forEach(clearTimeout); chatTimers = [];
+        $$('.msg.new', thread).forEach(function (m) { m.remove(); });
+        chatStep = 0; gombal.disabled = false;
+      }
+
+      /* ---------------------------------------------------------------------
+         Mulai (bisa langsung ke halaman tertentu lewat #angka, dipakai auto-update)
+         --------------------------------------------------------------------- */
+      var startAt = parseInt(location.hash.slice(1), 10);
+      if (startAt > 0 && startAt < pages.length) { max = startAt; go(startAt); } else { go(0); }
+      requestAnimationFrame(function () { requestAnimationFrame(function () { app.classList.remove('boot'); }); });
+
+      /* ---------------------------------------------------------------------
+         🔄 AUTO-UPDATE
+         GitHub Pages menyimpan cache halaman ±10 menit (browser + CDN), jadi
+         setelah upload, kadang yang muncul masih versi lama. Skrip ini tiap
+         halaman dibuka: ambil versi terbaru dengan URL unik (menembus cache),
+         bandingkan dengan versi yang sedang tampil, kalau beda → otomatis
+         dimuat ulang. Tidak perlu edit apa-apa di sini.
+         --------------------------------------------------------------------- */
+      (function autoUpdate() {
+        if (!/^https?:$/.test(location.protocol) || !window.fetch) return;
+
+        function hash(s) { var h = 2166136261; for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36); }
+        function plainUrl() { var u = new URL(location.href); u.searchParams.delete('_v'); u.hash = ''; return u; }
+
+        var debug = /[?&]debug\b/.test(location.search), lastCheck = 0;
+        var dbg = $('#dbg');
+
+        function check() {
+          var now = Date.now();
+          if (now - lastCheck < 30000) return;           // maksimal 1x / 30 detik
+          lastCheck = now;
+
+          var base = plainUrl(), fresh = new URL(base); fresh.searchParams.set('_v', 'chk' + now);
+          var current = fetch(location.href, { cache: 'force-cache' }).then(function (r) { return r.text(); });
+          var latest = fetch(fresh.href, { cache: 'no-store' }).then(function (r) { if (!r.ok) throw 0; return r.text(); });
+
+          Promise.all([current, latest]).then(function (t) {
+            var hc = hash(t[0]), hl = hash(t[1]);
+            if (debug) { dbg.hidden = false; dbg.textContent = 'tampil ' + hc + ' / terbaru ' + hl + (hc === hl ? ' ✓' : ' ↻'); }
+            if (hc === hl) return;
+
+            var lock = 'jea-reloaded', prev = 0;
+            try { prev = +sessionStorage.getItem(lock) || 0; } catch (_) { }
+            if (now - prev < 15000) return;              // anti-loop
+            try { sessionStorage.setItem(lock, now); } catch (_) { }
+
+            var next = new URL(base); next.searchParams.set('_v', hl); next.hash = String(cur);
+            location.replace(next.href);
+          }).catch(function () { /* offline / gagal: abaikan, tampilkan versi yang ada */ });
+        }
+
+        window.addEventListener('load', function () { setTimeout(check, 800); });
+        document.addEventListener('visibilitychange', function () { if (!document.hidden) check(); });
+      })();
+
+    })();
+  </script>
+</body>
+
+</html>
