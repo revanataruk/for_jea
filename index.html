@@ -102,9 +102,14 @@
       max-width: 430px;
       overflow: hidden;
       background: #2A1040;
-      transition: background .45s ease;
+      transition: background .45s ease, opacity .8s ease, transform .8s cubic-bezier(.22, 1, .36, 1);
       --bt: rgba(255, 255, 255, .35);
       --bf: #fff;
+    }
+
+    .app.boot {
+      opacity: 0;
+      transform: translateY(20px) scale(0.95);
     }
 
     .app[data-p="1"] {
@@ -188,23 +193,27 @@
       color: var(--fg);
       opacity: 0;
       visibility: hidden;
-      transform: translate3d(7%, 0, 0);
-      transition: opacity .35s ease, transform .5s cubic-bezier(.22, 1, .36, 1), visibility 0s linear .5s;
+      transform: translate3d(100%, 0, 0) scale(0.95);
+      box-shadow: -15px 0 30px rgba(0,0,0,0.25);
+      transition: opacity .4s ease, transform .6s cubic-bezier(.22, 1, .36, 1), visibility 0s linear .6s;
     }
 
     .page.active {
       opacity: 1;
       visibility: visible;
-      transform: none;
-      transition-delay: 0s
+      transform: translate3d(0, 0, 0) scale(1);
+      box-shadow: none;
+      transition-delay: 0s;
     }
 
     .page.past {
-      transform: translate3d(-7%, 0, 0)
+      transform: translate3d(-30%, 0, 0) scale(0.95);
+      opacity: 0;
+      transition: opacity .5s ease, transform .6s cubic-bezier(.22, 1, .36, 1), visibility 0s linear .6s;
     }
 
     .boot .page {
-      transition: none !important
+      transition: none !important;
     }
 
     h1,
@@ -267,6 +276,30 @@
       --fg: #fff;
       padding: 0
     }
+
+    .hero-photo, .by, .hero-copy h1, .hero-copy p, .hero-copy button {
+      transition: transform .8s cubic-bezier(.22, 1, .36, 1), opacity .8s ease;
+    }
+    .boot .hero-photo {
+      transform: scale(1.1);
+      opacity: 0;
+    }
+    .boot .by {
+      transform: translateY(-10px);
+      opacity: 0;
+    }
+    .boot .hero-copy h1,
+    .boot .hero-copy p,
+    .boot .hero-copy button {
+      transform: translateY(20px);
+      opacity: 0;
+    }
+    .app:not(.boot) .hero-photo { transition-delay: 0.1s; }
+    .app:not(.boot) .by { transition-delay: 0.2s; }
+    .app:not(.boot) .hero-copy h1 { transition-delay: 0.3s; }
+    .app:not(.boot) .hero-copy .mark { transition-delay: 0.4s; }
+    .app:not(.boot) .hero-copy .lead { transition-delay: 0.5s; }
+    .app:not(.boot) .hero-copy button { transition-delay: 0.6s; }
 
     .hero-fallback {
       position: absolute;
