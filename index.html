@@ -39,6 +39,12 @@
       --vh: 1vh;
       /* di-update JS = tinggi layar asli Safari */
       --photo-pos: center 22%;
+      /* warna latar tiap halaman (dipakai halaman di mobile + latar lebar di PC) */
+      --bg-cards: linear-gradient(168deg, #FF9CC4 0%, #FF6FA5 46%, #C98CFF 100%);
+      --bg-flower: radial-gradient(120% 85% at 50% 12%, #5A2160 0%, #35134A 45%, #240D33 100%);
+      --bg-final: linear-gradient(165deg, #FFA9C6 0%, #FF5E93 42%, #C98CFF 74%, #FFC28E 100%);
+      --hero-fallback: linear-gradient(160deg, #5B2BFF, #FF3D8E 60%, #FF9A3D);
+      --hero-scrim: linear-gradient(to bottom, rgba(21, 18, 58, .55) 0%, rgba(21, 18, 58, 0) 20%, rgba(21, 18, 58, 0) 40%, rgba(21, 18, 58, .7) 72%, rgba(21, 18, 58, .94) 100%);
       /* geser fokus foto hero: "center 10%" = naik, "center 40%" = turun */
     }
 
@@ -307,7 +313,7 @@
       right: 0;
       bottom: 0;
       left: 0;
-      background: linear-gradient(160deg, #5B2BFF, #FF3D8E 60%, #FF9A3D)
+      background: var(--hero-fallback)
     }
 
     .hero-photo {
@@ -327,7 +333,7 @@
       bottom: 0;
       left: 0;
       pointer-events: none;
-      background: linear-gradient(to bottom, rgba(21, 18, 58, .55) 0%, rgba(21, 18, 58, 0) 20%, rgba(21, 18, 58, 0) 40%, rgba(21, 18, 58, .7) 72%, rgba(21, 18, 58, .94) 100%);
+      background: var(--hero-scrim);
     }
 
     .by {
@@ -428,7 +434,7 @@
    2 · LITTLE THINGS — tumpukan kartu
    ===================================================================== */
     .p-cards {
-      --bg: linear-gradient(168deg, #FF9CC4 0%, #FF6FA5 46%, #C98CFF 100%);
+      --bg: var(--bg-cards);
       --fg: #fff
     }
 
@@ -700,7 +706,7 @@
    3 · BUNGA — satu momen animasi utama
    ===================================================================== */
     .p-flower {
-      --bg: radial-gradient(120% 85% at 50% 12%, #5A2160 0%, #35134A 45%, #240D33 100%);
+      --bg: var(--bg-flower);
       --fg: #fff;
       position: absolute
     }
@@ -952,7 +958,7 @@
    4 · PENUTUP — DM
    ===================================================================== */
     .p-final {
-      --bg: linear-gradient(165deg, #FFA9C6 0%, #FF5E93 42%, #C98CFF 74%, #FFC28E 100%);
+      --bg: var(--bg-final);
       --fg: #fff
     }
 
@@ -1193,6 +1199,158 @@
       }
     }
 
+
+    /* =====================================================================
+   TAMPILAN PC / LAYAR LEBAR (> 430px)
+   Halaman tetap 430px di tengah (sama persis seperti mobile), tapi
+   latarnya dilebarkan memenuhi layar. Di mobile blok ini tidak aktif.
+   ===================================================================== */
+    .pc-bg {
+      display: none
+    }
+
+    @media (min-width: 431px) {
+
+      /* halaman jadi transparan -> latar lebar di belakang tampak nyambung */
+      .app,
+      .app[data-p="1"],
+      .app[data-p="2"],
+      .app[data-p="3"] {
+        background: transparent;
+        z-index: 1
+      }
+
+      .page,
+      .page.active {
+        background: transparent;
+        box-shadow: none
+      }
+
+      /* foto/bintang/glitter versi halaman disembunyikan, diganti versi layar penuh */
+      .hero-fallback,
+      .hero-photo,
+      .hero-scrim,
+      .p-flower .sky,
+      .p-cards::after {
+        display: none
+      }
+
+      .pc-bg {
+        display: block;
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 0;
+        overflow: hidden;
+        pointer-events: none;
+        background: #1C0A22
+      }
+
+      /* tiap halaman = 1 lapis latar; yang aktif naik ke atas lalu fade-in,
+         lapisan lama baru hilang setelahnya (tanpa "kedip" gelap) */
+      .pc-l {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 1;
+        opacity: 0;
+        transition: opacity .55s ease .55s
+      }
+
+      .app[data-p="0"]~.pc-bg .pc-l0,
+      .app[data-p="1"]~.pc-bg .pc-l1,
+      .app[data-p="2"]~.pc-bg .pc-l2,
+      .app[data-p="3"]~.pc-bg .pc-l3 {
+        opacity: 1;
+        z-index: 2;
+        transition-delay: 0s
+      }
+
+      .pc-l0 {
+        background: var(--hero-fallback)
+      }
+
+      .pc-l1 {
+        background: var(--bg-cards)
+      }
+
+      .pc-l2 {
+        background: var(--bg-flower)
+      }
+
+      .pc-l3 {
+        background: var(--bg-final)
+      }
+
+      /* hero: foto full screen */
+      .pc-photo {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: var(--photo-pos);
+        transition: transform .8s cubic-bezier(.22, 1, .36, 1), opacity .8s ease
+      }
+
+      .pc-scrim {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background: var(--hero-scrim)
+      }
+
+      .app.boot~.pc-bg .pc-photo {
+        transform: scale(1.1);
+        opacity: 0
+      }
+
+      .app:not(.boot)~.pc-bg .pc-photo {
+        transition-delay: .1s
+      }
+
+      /* kartu: glitter */
+      .pc-l1::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        opacity: .5;
+        background:
+          radial-gradient(circle 4px at 12% 22%, rgba(255, 255, 255, .75), transparent 60%),
+          radial-gradient(circle 5px at 86% 30%, rgba(255, 255, 255, .6), transparent 60%),
+          radial-gradient(circle 3px at 22% 72%, rgba(255, 255, 255, .7), transparent 60%),
+          radial-gradient(circle 4px at 78% 80%, rgba(255, 255, 255, .55), transparent 60%),
+          radial-gradient(circle 4px at 38% 12%, rgba(255, 255, 255, .6), transparent 60%),
+          radial-gradient(circle 3px at 64% 58%, rgba(255, 255, 255, .55), transparent 60%),
+          radial-gradient(circle 5px at 6% 52%, rgba(255, 255, 255, .6), transparent 60%),
+          radial-gradient(circle 4px at 94% 66%, rgba(255, 255, 255, .6), transparent 60%),
+          radial-gradient(circle 3px at 52% 90%, rgba(255, 255, 255, .6), transparent 60%)
+      }
+
+      /* bunga: bintang berkelip se-layar */
+      .pc-sky {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0
+      }
+
+      .app[data-p="2"]~.pc-bg .star {
+        animation: tw 3.2s ease-in-out var(--dl) infinite
+      }
+    }
+
     /* HP posisi tidur */
     .rot {
       display: none;
@@ -1336,6 +1494,17 @@
         <p class="hand">tencuu</p>
       </div>
     </section>
+  </div>
+
+  <!-- latar lebar untuk PC (tersembunyi di mobile) -->
+  <div class="pc-bg" aria-hidden="true">
+    <div class="pc-l pc-l0">
+      <img class="pc-photo" src="assets/her.PNG" alt="" onerror="this.remove()">
+      <div class="pc-scrim"></div>
+    </div>
+    <div class="pc-l pc-l1"></div>
+    <div class="pc-l pc-l2"><div class="pc-sky" id="pcSky"></div></div>
+    <div class="pc-l pc-l3"></div>
   </div>
 
   <div class="rot">Putar HP-mu ke posisi berdiri ya 📱</div>
@@ -1568,6 +1737,14 @@
           s.className = 'star';
           s.style.cssText = 'left:' + (rnd() * 100).toFixed(1) + '%;top:' + (rnd() * 100).toFixed(1) + '%;--sz:' + (1.5 + rnd() * 2.5).toFixed(1) + 'px;--dl:' + (rnd() * 3).toFixed(1) + 's';
           sky.appendChild(s);
+        }
+        /* bintang tambahan untuk latar lebar di PC */
+        var pcSky = $('#pcSky');
+        if (pcSky) for (var j = 0; j < 70; j++) {
+          var t = document.createElement('i');
+          t.className = 'star';
+          t.style.cssText = 'left:' + (rnd() * 100).toFixed(1) + '%;top:' + (rnd() * 100).toFixed(1) + '%;--sz:' + (1.5 + rnd() * 2.5).toFixed(1) + 'px;--dl:' + (rnd() * 3).toFixed(1) + 's';
+          pcSky.appendChild(t);
         }
       })();
 
