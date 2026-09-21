@@ -200,7 +200,7 @@
       opacity: 0;
       visibility: hidden;
       transform: translate3d(100%, 0, 0) scale(0.95);
-      box-shadow: -15px 0 30px rgba(0,0,0,0.25);
+      box-shadow: -15px 0 30px rgba(0, 0, 0, 0.25);
       transition: opacity .4s ease, transform .6s cubic-bezier(.22, 1, .36, 1), visibility 0s linear .6s;
     }
 
@@ -283,29 +283,54 @@
       padding: 0
     }
 
-    .hero-photo, .by, .hero-copy h1, .hero-copy p, .hero-copy button {
+    .hero-photo,
+    .by,
+    .hero-copy h1,
+    .hero-copy p,
+    .hero-copy button {
       transition: transform .8s cubic-bezier(.22, 1, .36, 1), opacity .8s ease;
     }
+
     .boot .hero-photo {
       transform: scale(1.1);
       opacity: 0;
     }
+
     .boot .by {
       transform: translateY(-10px);
       opacity: 0;
     }
+
     .boot .hero-copy h1,
     .boot .hero-copy p,
     .boot .hero-copy button {
       transform: translateY(20px);
       opacity: 0;
     }
-    .app:not(.boot) .hero-photo { transition-delay: 0.1s; }
-    .app:not(.boot) .by { transition-delay: 0.2s; }
-    .app:not(.boot) .hero-copy h1 { transition-delay: 0.3s; }
-    .app:not(.boot) .hero-copy .mark { transition-delay: 0.4s; }
-    .app:not(.boot) .hero-copy .lead { transition-delay: 0.5s; }
-    .app:not(.boot) .hero-copy button { transition-delay: 0.6s; }
+
+    .app:not(.boot) .hero-photo {
+      transition-delay: 0.1s;
+    }
+
+    .app:not(.boot) .by {
+      transition-delay: 0.2s;
+    }
+
+    .app:not(.boot) .hero-copy h1 {
+      transition-delay: 0.3s;
+    }
+
+    .app:not(.boot) .hero-copy .mark {
+      transition-delay: 0.4s;
+    }
+
+    .app:not(.boot) .hero-copy .lead {
+      transition-delay: 0.5s;
+    }
+
+    .app:not(.boot) .hero-copy button {
+      transition-delay: 0.6s;
+    }
 
     .hero-fallback {
       position: absolute;
@@ -1402,7 +1427,7 @@
 
       <div class="by">
         <div class="ava"><span>R</span></div>
-        <div><b id="handle">revandiwangkara</b><small>baru saja</small></div>
+        <div><b id="handle">Mas Re</b><small>baru saja</small></div>
       </div>
 
       <div class="hero-copy">
@@ -1503,7 +1528,9 @@
       <div class="pc-scrim"></div>
     </div>
     <div class="pc-l pc-l1"></div>
-    <div class="pc-l pc-l2"><div class="pc-sky" id="pcSky"></div></div>
+    <div class="pc-l pc-l2">
+      <div class="pc-sky" id="pcSky"></div>
+    </div>
     <div class="pc-l pc-l3"></div>
   </div>
 
@@ -1517,8 +1544,9 @@
       /* =====================================================================
          ✏️  EDIT DI SINI  — teks & pengaturan yang paling sering diganti
          ===================================================================== */
-      var HANDLE = 'revandiwangkara';                       // username IG (dipakai di header & link DM)
-      var DM_LINK = 'https://ig.me/m/' + HANDLE;
+      var HANDLE_TEXT = 'Mas Re';                           // text username (dipakai di header)
+      var IG_USERNAME = 'revandiwangkara';                  // username IG (untuk link DM)
+      var DM_LINK = 'https://ig.me/m/' + IG_USERNAME;
 
       var FACTS = [   // seal/sub = tampilan amplop, emoji/title/text = isi pesan, c = warna kartu
         { seal: '💌', sub: 'bukaaa~', emoji: '👶', title: 'Haiii Ontyy', c: '#FF8FB8', text: 'Katane sih gara-gara kakak ipar abis lahiran, adeknya jangan diajarin aneh aneh yaa. 👶' },
@@ -1554,7 +1582,7 @@
         if (!e.target.closest || !e.target.closest('.card')) e.preventDefault();
       }, { passive: false });
 
-      $('#handle').textContent = HANDLE;
+      $('#handle').textContent = HANDLE_TEXT;
       $('#dm').href = DM_LINK;
 
       /* ---------------------------------------------------------------------
